@@ -1,30 +1,32 @@
+import { Picker } from '@react-native-picker/picker';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+
+import { AppConstants } from '../constants/appConstants';
 import { RootStackParamList } from '../types';
 import VintageButton from '../components/VintageButton';
-import VintageInput from '../components/VintageInput'; // Asegúrate de tener este componente
-import { Picker } from '@react-native-picker/picker';
+import VintageInput from '../components/VintageInput';
 
 type CreateHabitScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CreateHabit'>;
 
 const CreateHabitScreen: React.FC = () => {
   const navigation = useNavigation<CreateHabitScreenNavigationProp>();
-  const [habitName, setHabitName] = useState('');
-  const [description, setDescription] = useState('');
+  const [habitName, setHabitName] = useState(AppConstants.emptyString);
+  const [description, setDescription] = useState(AppConstants.emptyString);
   const [emoji, setEmoji] = useState('😊');
   const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [target, setTarget] = useState('');
+  const [target, setTarget] = useState(AppConstants.emptyString);
   const [errors, setErrors] = useState({
-    name: '',
-    target: '',
+    name: AppConstants.emptyString,
+    target: AppConstants.emptyString,
   });
 
   const validate = () => {
     let valid = true;
-    const newErrors = { name: '', target: '' };
+    const newErrors = { name: AppConstants.emptyString, target: AppConstants.emptyString };
 
     if (!habitName.trim()) {
       newErrors.name = 'El nombre del hábito es obligatorio';
@@ -42,8 +44,6 @@ const CreateHabitScreen: React.FC = () => {
 
   const handleSubmit = () => {
     if (validate()) {
-      // Aquí iría la lógica para crear el hábito
-      // Por ahora solo navegamos atrás
       console.log('ok')
       navigation.goBack();
     }
@@ -151,11 +151,11 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 2,
-    borderColor: '#b08d57', // Color marrón vintage para el borde
+    borderColor: '#b08d57',
     borderRadius: 8,
     marginBottom: 20,
-    backgroundColor: '#f8f4e8', // Fondo beige claro
-    overflow: 'hidden', // Para que los bordes redondeados se vean bien
+    backgroundColor: '#f8f4e8',
+    overflow: 'hidden',
     shadowColor: '#8b7d6b',
     shadowOffset: { width: 1, height: 1 },
     shadowOpacity: 0.3,
@@ -164,21 +164,16 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
-    color: '#5c4b37', // Color texto marrón oscuro
+    color: '#5c4b37',
     fontFamily: 'Vintage-Typewriter',
     fontSize: 16,
-    // Para iOS: personalizamos la apariencia del Picker
     ...Platform.select({
-      ios: {
-        // En iOS, el Picker se ve diferente, así que ajustamos su contenedor
-      },
+      ios: { },
       android: {
-        // En Android, podemos estilizar el Picker directamente
         backgroundColor: 'transparent',
       },
     }),
   },
-  // Estilo para el icono del Picker (solo iOS)
   pickerIcon: {
     position: 'absolute',
     right: 12,
