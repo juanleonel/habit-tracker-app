@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
 import Header from './components/Header';
 import HabitItem from './components/HabitItem';
 import { mockHabits } from './data/habiits';
@@ -19,11 +19,13 @@ import { Habit, RootStackParamList } from './types';
 import VintageButton from './components/VintageButton';
 import { useVintageFonts } from './hooks/useVintageFonts';
 import VintageInput from './components/VintageInput';
+import CreateHabitScreen from './components/CreateHabitScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 // Ajustamos HomeScreen para usar SafeAreaView
 const HomeScreen: React.FC = () => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'Home'>>();
   const [habits, setHabits] = useState<Habit[]>(mockHabits);
   const [longPressedHabit, setLongPressedHabit] = useState<Habit | null>(null);
 
@@ -67,29 +69,16 @@ const HomeScreen: React.FC = () => {
   };
 
   const navigateToStatistics = () => {
-    Alert.alert('Navegar', 'Ir a estadísticas');
+    navigation.navigate('Statistics');
   };
 
   const navigateToCreateHabit = () => {
-    Alert.alert('Navegar', 'Crear nuevo hábito');
+    navigation.navigate('CreateHabit');
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Header />
-      <VintageInput
-        label="Correo electrónico"
-        placeholder="tu@email.com"
-        variant="filled"
-        onChangeText={(text) => console.log(text)}
-      />
-
-      <VintageInput
-        label="Contraseña"
-        placeholder="Ingresa tu contraseña"
-        secureTextEntry
-        error="La contraseña es demasiado corta"
-      />
       <FlatList
         data={habits}
         keyExtractor={item => item.id}
@@ -112,30 +101,16 @@ const HomeScreen: React.FC = () => {
       <View style={styles.bottomNav}>
         <VintageButton
           title="Estadísticas"
-          disabled={true}
           onPress={navigateToStatistics}
           variant="secondary"
-          size='small'
-        />
-
-        <VintageButton
-          title="Eliminar Hábito"
-          onPress={() => longPressedHabit && deleteHabit(longPressedHabit.id)}
-          variant="danger"
-          size='small'
-        />
-        <VintageButton
-          title="Advertencia"
-          onPress={() => Alert.alert('Advertencia', 'Esto es una advertencia')}
-          variant="warning"
-          size='small'
+          size='medium'
         />
 
         <VintageButton
           title="Crear Hábito"
           onPress={navigateToCreateHabit}
           variant="primary"
-          size='small'
+          size='medium'
         />
       </View>
     </SafeAreaView>
@@ -147,14 +122,6 @@ const StatisticsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Text>Pantalla de Estadísticas</Text>
-    </SafeAreaView>
-  );
-};
-
-const CreateHabitScreen: React.FC = () => {
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <Text>Pantalla de Crear Hábito</Text>
     </SafeAreaView>
   );
 };
