@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,16 +18,18 @@ import { mockHabits } from './data/habiits';
 import { Habit, RootStackParamList } from './types';
 import VintageButton from './components/VintageButton';
 import { useVintageFonts } from './hooks/useVintageFonts';
-import VintageInput from './components/VintageInput';
 import CreateHabitScreen from './components/CreateHabitScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-// Ajustamos HomeScreen para usar SafeAreaView
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'Home'>>();
   const [habits, setHabits] = useState<Habit[]>(mockHabits);
   const [longPressedHabit, setLongPressedHabit] = useState<Habit | null>(null);
+
+  // useEffect(async() => {
+
+  // });
 
   const toggleHabit = (id: string) => {
     setHabits(prevHabits =>
@@ -117,7 +119,6 @@ const HomeScreen: React.FC = () => {
   );
 };
 
-// Ajustamos las otras pantallas para usar SafeAreaView
 const StatisticsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -126,12 +127,9 @@ const StatisticsScreen: React.FC = () => {
   );
 };
 
-// Ajustamos el componente principal App para incluir SafeAreaProvider
 const App: React.FC = () => {
-  // Usamos el hook para cargar las fuentes
   const fontsLoaded = useVintageFonts();
 
-  // Mientras las fuentes se cargan, mostramos un indicador de carga
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
@@ -166,11 +164,10 @@ const App: React.FC = () => {
   );
 };
 
-// Ajustamos los estilos para que funcionen bien con SafeAreaView
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent', // Fondo transparente para que se vea el global
+    backgroundColor: 'transparent',
   },
   list: {
     paddingHorizontal: 16,
@@ -178,14 +175,14 @@ const styles = StyleSheet.create({
   },
   longPressHint: {
     padding: 10,
-    backgroundColor: '#f0e6d8', // Fondo vintage claro con textura
+    backgroundColor: '#f0e6d8',
     borderTopWidth: 1,
-    borderTopColor: '#d4b483', // Borde dorado vintage
+    borderTopColor: '#d4b483',
   },
   hintText: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#8b7d6b', // Texto sepia
+    color: '#8b7d6b',
     fontFamily: 'Vintage-Typewriter',
     fontStyle: 'italic',
   },
@@ -193,10 +190,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#f0e6d8', // Fondo vintage
+    backgroundColor: '#f0e6d8',
     borderTopWidth: 2,
-    borderTopColor: '#d4b483', // Borde superior dorado
-    // Efecto de textura vintage
+    borderTopColor: '#d4b483',
     shadowColor: '#8b7d6b',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,

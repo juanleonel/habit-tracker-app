@@ -1,14 +1,16 @@
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, Alert, ActivityIndicator, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView } from 'react-native';
 
 import { AppConstants } from '../constants/appConstants';
-import { RootStackParamList } from '../types';
+import { Habit, RootStackParamList } from '../types';
 import VintageButton from '../components/VintageButton';
 import VintageInput from '../components/VintageInput';
+import { createHabitLabels } from '../labels/createHabitLabels';
+import SQLiteService from '../utils/SqliteService';
 
 type CreateHabitScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CreateHabit'>;
 
@@ -23,6 +25,21 @@ const CreateHabitScreen: React.FC = () => {
     name: AppConstants.emptyString,
     target: AppConstants.emptyString,
   });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [dbReady, setDbReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const initDataDb = async () => {
+        await SQLiteService.init();
+      };
+      initDataDb();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const validate = () => {
     let valid = true;
@@ -42,80 +59,105 @@ const CreateHabitScreen: React.FC = () => {
     return valid;
   };
 
-  const handleSubmit = () => {
-    if (validate()) {
-      console.log('ok')
-      navigation.goBack();
-    }
-  };
+  const handleSubmit = useCallback(async () => {
+    if (!validate()) return;
 
+    setLoading(true);
+    try {
+      const habitData = {
+        name: habitName,
+        description: description,
+        emoji: emoji,
+        completed: false,
+        frequency: frequency,
+        target: target
+      };
+
+      await SQLiteService.addHabit(habitData);
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el hábito');
+    } finally {
+      setLoading(false);
+    }
+  }, [habitName, description, emoji, frequency, target, navigation]);
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#5c4b37" />
+        <Text style={styles.loadingText}>Cargando hábitos...</Text>
+      </View>
+    );
+  }
+  
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Nuevo Hábito</Text>
-
-        <VintageInput
-          label="Nombre del hábito*"
-          placeholder="Ej: Beber agua"
-          value={habitName}
-          onChangeText={setHabitName}
-          error={errors.name}
-          variant="filled"
-        />
-
-        <VintageInput
-          label="Descripción (opcional)"
-          placeholder="Ej: Beber 2 litros de agua al día"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          numberOfLines={3}
-          variant="filled"
-        />
-
-        <Text style={styles.label}>Emoji</Text>
-        <View style={styles.emojiContainer}>
-          <Text style={styles.emoji}>{emoji}</Text>
-        </View>
-
-        <Text style={styles.label}>Frecuencia*</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={frequency}
-            onValueChange={(itemValue) => setFrequency(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Diario" value="daily" />
-            <Picker.Item label="Semanal" value="weekly" />
-            <Picker.Item label="Mensual" value="monthly" />
-          </Picker>
-        </View>
-
-        <VintageInput
-          label="Objetivo*"
-          placeholder="Ej: 8 vasos al día"
-          value={target}
-          onChangeText={setTarget}
-          error={errors.target}
-          variant="filled"
-        />
-
-        <VintageButton
-          title="Crear Hábito"
-          onPress={handleSubmit}
-          variant="primary"
-          size="large"
-          style={styles.submitButton}
-        />
-
-        <VintageButton
-          title="Cancelar"
-          onPress={() => navigation.goBack()}
-          variant="info"
-          size="medium"
-          style={styles.cancelButton}
-        />
-      </ScrollView>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              <Text style={styles.title}>{createHabitLabels.title}</Text>
+              <VintageInput
+                label={createHabitLabels.habitName}
+                placeholder={createHabitLabels.habitPlaceholder}
+                value={habitName}
+                onChangeText={setHabitName}
+                error={errors.name}
+                variant="filled"
+              />
+              <VintageInput
+                label={createHabitLabels.description}
+                placeholder={createHabitLabels.descriptionPlaceholder}
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+                variant="filled"
+              />
+              <Text style={styles.label}>{createHabitLabels.emoji}</Text>
+              <View style={styles.emojiContainer}>
+                <Text style={styles.emoji}>{emoji}</Text>
+              </View>
+              <Text style={styles.label}>Frecuencia*</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={frequency}
+                  onValueChange={(itemValue) => setFrequency(itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Diario" value="daily" />
+                  <Picker.Item label="Semanal" value="weekly" />
+                  <Picker.Item label="Mensual" value="monthly" />
+                </Picker>
+              </View>
+              <VintageInput
+                label={createHabitLabels.target}
+                placeholder={createHabitLabels.targetPlaceholder}
+                value={target}
+                onChangeText={setTarget}
+                error={errors.target}
+                variant="filled"
+              />
+              <VintageButton
+                title={createHabitLabels.create}
+                onPress={handleSubmit}
+                variant="primary"
+                size="large"
+                style={styles.submitButton}
+              />
+              <VintageButton
+                title={createHabitLabels.cancel}
+                onPress={() => navigation.goBack()}
+                variant="info"
+                size="medium"
+                style={styles.cancelButton}
+              />
+            </ScrollView>
+          </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -186,6 +228,18 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginBottom: 20,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f4eb',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#5c4b37',
+    fontFamily: 'Vintage-Typewriter',
   },
 });
 
