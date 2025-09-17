@@ -18,6 +18,7 @@ import { mockHabits } from './data/habiits';
 import { Habit, RootStackParamList } from './types';
 import VintageButton from './components/VintageButton';
 import { useVintageFonts } from './hooks/useVintageFonts';
+import VintageInput from './components/VintageInput';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -76,7 +77,19 @@ const HomeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Header />
+      <VintageInput
+        label="Correo electrónico"
+        placeholder="tu@email.com"
+        variant="filled"
+        onChangeText={(text) => console.log(text)}
+      />
 
+      <VintageInput
+        label="Contraseña"
+        placeholder="Ingresa tu contraseña"
+        secureTextEntry
+        error="La contraseña es demasiado corta"
+      />
       <FlatList
         data={habits}
         keyExtractor={item => item.id}
@@ -99,14 +112,30 @@ const HomeScreen: React.FC = () => {
       <View style={styles.bottomNav}>
         <VintageButton
           title="Estadísticas"
+          disabled={true}
           onPress={navigateToStatistics}
           variant="secondary"
+          size='small'
+        />
+
+        <VintageButton
+          title="Eliminar Hábito"
+          onPress={() => longPressedHabit && deleteHabit(longPressedHabit.id)}
+          variant="danger"
+          size='small'
+        />
+        <VintageButton
+          title="Advertencia"
+          onPress={() => Alert.alert('Advertencia', 'Esto es una advertencia')}
+          variant="warning"
+          size='small'
         />
 
         <VintageButton
           title="Crear Hábito"
           onPress={navigateToCreateHabit}
           variant="primary"
+          size='small'
         />
       </View>
     </SafeAreaView>
